@@ -450,6 +450,7 @@ The application supports four booking states:
 - CANCELLED
 
 Typical booking flow:
+```text
                  ┌───────────────┐
                  │    PENDING    │
                  └───────┬───────┘
@@ -462,14 +463,17 @@ Typical booking flow:
        ┌─────────────┐       ┌─────────────┐
        │  CONFIRMED  │       │    FAILED   │
        └─────────────┘       └─────────────┘
-
+```
 A pending booking can also be cancelled:
+
+```text
 
 PENDING
    │
    │ Cancel
    ▼
 CANCELLED
+```
 
 # Simulated Payment API
 
@@ -501,7 +505,7 @@ or:
 ```
 
 ## Successful Payment Flow
-
+```text
 Booking
    │
    │ PENDING
@@ -514,9 +518,11 @@ Payment created
    │
    ▼
 Booking = CONFIRMED
+```
 
 ## Failed Payment Flow
 
+```text
 Booking
    │
    │ PENDING
@@ -529,6 +535,7 @@ Payment created
    │
    ▼
 Booking = FAILED
+```
 
 Only pending bookings can be paid for.
 Each booking can have at most one payment.
@@ -557,6 +564,7 @@ Request Body
 The project contains both a simulated payment endpoint and a webhook because they represent two different parts of a payment flow.
 
 ## Simulated Payment
+```text
 Client
    │
    │ POST /payments
@@ -566,8 +574,10 @@ Backend
    │ Simulated payment result
    ▼
 Payment + Booking updated
+```
 
 ## Webhook
+```text
 Simulated Payment Provider
             │
             │ Payment event
@@ -579,6 +589,7 @@ Simulated Payment Provider
             │
             ▼
     Payment + Booking updated
+```
 
 The /payments endpoint simulates the payment processing operation.
 The /payments/webhook endpoint simulates the payment provider notifying the backend about the payment result.
@@ -588,6 +599,7 @@ The /payments/webhook endpoint simulates the payment provider notifying the back
 Payment providers may retry webhook events.
 For example:
 
+```text
 Payment Provider
        │
        │ event_001
@@ -597,9 +609,11 @@ Payment Provider
        │ Process
        ▼
  Payment created
+```
 
 If the provider sends the same event again:
 
+```text
 Payment Provider
        │
        │ event_001
@@ -609,6 +623,7 @@ Payment Provider
        │ Already processed
        ▼
 No duplicate payment
+```
 
 The Payment model contains a unique webhookEventId.
 The booking field in the Payment model is also unique.
@@ -619,33 +634,39 @@ Therefore:
 # Database / Schema Design
 
 The project uses MongoDB with Mongoose.
-User
-
+User:
+```text
 User
 ├── name
 ├── email
 ├── password
 └── role
+```
 
 Roles:
-
+```text
 USER
 ADMIN
+```
 
 Passwords are hashed using bcrypt before being stored.
 
-Test
+Test:
+```text
 Test
 ├── name
 └── description
+```
 
-Diagnostic Centre
+Diagnostic Centre:
+```text
 DiagnosticCentre
 ├── name
 ├── location
 └── tests[]
       ├── testId
       └── price
+```
 
 The centre stores references to tests along with centre-specific prices.
 This allows:
@@ -654,7 +675,8 @@ Centre B → CBC → ₹550
 
 while still referencing the same diagnostic test.
 
-Booking
+Booking:
+```text
 Booking
 ├── user
 ├── test
@@ -662,15 +684,19 @@ Booking
 ├── appointmentDate
 ├── amount
 └── status
+```
 
 Relationships:
+```text
 User ────────────────> Booking
 Test ────────────────> Booking
 DiagnosticCentre ────> Booking
+```
 
 The booking stores the final amount determined by the selected centre.
 
-Payment
+Payment:
+```text
 Payment
 ├── booking
 ├── user
@@ -678,6 +704,7 @@ Payment
 ├── status
 ├── transactionId
 └── webhookEventId
+```
 
 Important constraints:
 - booking is unique
